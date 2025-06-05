@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  userTools UserTool[]
+  accessKeys AccessKey[]
+}
+
+model Tool {
+  id           String   @id @default(uuid())
+  name         String
+  description  String
+  iconUrl      String?
+  authProvider String   // e.g., google, github
+  authConfig   Json     // client_id, scopes, etc.
+  authRequired Boolean @default(false)
+  createdAt    DateTime @default(now())
+   accessKeys   AccessKey[]  
+  userTools    UserTool[]
+}
+
+model UserTool {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  authorized Boolean @default(false)
+  userId    String
+  toolId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, toolId], name: "userTool_userId_toolId")
+}
+
+model AccessKey {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id])
+  tool          Tool     @relation(fields: [toolId], references: [id])
+  userId        String
+  toolId        String
+  accessToken   String
+  refreshToken  String?
+  expiryDate    DateTime
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, toolId])
+}
+
