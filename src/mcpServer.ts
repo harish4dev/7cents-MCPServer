@@ -3,7 +3,7 @@ import {
   ListToolsRequestSchema,
   InitializeRequestSchema
 } from "@modelcontextprotocol/sdk/types.js";
-import { tools } from "./tools";
+import { tools } from "./toolRegistry";
 
 // Create MCP server with tools capability
 export const server = new Server({

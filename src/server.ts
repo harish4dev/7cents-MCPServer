@@ -1,6 +1,13 @@
 import express from "express";
 import routes from "./routes";
-import { tools } from "./tools";
+// import { tools } from "./testtool";
+import { loadAllTools, tools } from "./toolRegistry";
+
+(async () => {
+  await loadAllTools();
+  console.log("Registered tools:", tools.map(t => t.name));
+})();
+
 
 const app = express();
 app.use(express.json());
