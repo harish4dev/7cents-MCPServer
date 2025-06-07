@@ -4,6 +4,8 @@ import { server } from "./mcpServer.js";
 // import { tools, handleToolCall } from "./testtool";
 import { handleToolCall } from "./handleToolCall.js";
 import {tools} from './toolRegistry'
+import { prisma } from "./utils.js";
+import { getToolsForUser } from "./getUserTools.js";
 const router = Router();
 let transport: SSEServerTransport | null = null;
 
@@ -64,9 +66,12 @@ router.post("/mcp", async (req, res) => {
             };
             break;
             
-          case 'tools/list':
-            result = { tools };
-            break;
+            case 'tools/list':
+              const filteredTools = await getToolsForUser(userId, tools);
+              result = { tools: filteredTools };
+              
+             break
+              
             
           case 'tools/call':
             if (!request.params) {
