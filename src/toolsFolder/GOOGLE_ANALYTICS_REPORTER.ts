@@ -185,9 +185,9 @@ export async function handler(args: any, userId?: string) {
   }
 
   // Ensure environment variables are loaded for Google OAuth client
-  const GOOGLE_CLIENT_ID = "1094703493635-3vpbdaqqhg3jqq1os8anl3bofqnph7lq.apps.googleusercontent.com";
-  const GOOGLE_CLIENT_SECRET = "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";
-  const GOOGLE_REDIRECT_URI = 'http://localhost:3333/api/auth/google/callback';
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
+  const GOOGLE_CLIENT_SECRET =process.env.GOOGLE_CLIENT_SECRET as string;
+  const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI as string;
 
   const oauth2Client = new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
