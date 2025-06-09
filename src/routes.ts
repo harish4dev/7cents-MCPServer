@@ -33,16 +33,16 @@ router.post("/mcp", async (req, res) => {
     console.log("the user id is there:", userId);
     
     // Validate JSON-RPC format
-    if (!message.jsonrpc || message.jsonrpc !== '2.0') {
-      return res.status(400).json({
-        jsonrpc: '2.0' as const,
-        error: {
-          code: -32600,
-          message: 'Invalid Request - missing or invalid jsonrpc field'
-        },
-        id: message.id || null
-      });
-    }
+    // if (!message.jsonrpc || message.jsonrpc !== '2.0') {
+    //   return res.status(400).json({
+    //     jsonrpc: '2.0' as const,
+    //     error: {
+    //       code: -32600,
+    //       message: 'Invalid Request - missing or invalid jsonrpc field'
+    //     },
+    //     id: message.id || null
+    //   });
+    // }
 
     // Handle JSON-RPC request
     if ('method' in message && 'id' in message) {
