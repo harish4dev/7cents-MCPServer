@@ -9,6 +9,19 @@ import { getToolsForUser } from "./getUserTools.js";
 const router = Router();
 let transport: SSEServerTransport | null = null;
 
+// Add CORS middleware for MCP routes
+router.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
+
 // SSE endpoint for establishing connection
 router.get("/sse", (req, res) => {
   console.log("Incoming SSE connection");
@@ -28,14 +41,58 @@ router.post("/messages", (req, res) => {
   }
 });
 
+// Handle GET requests to /mcp endpoint (for health checks/connection validation)
+router.get("/mcp", (req, res) => {
+  const startTime = Date.now();
+  const userId = req.query.userId as string;
+  console.log("GET request to /mcp endpoint with userId:", userId);
+  
+  // Add timing information to help debug hosted environment issues
+  res.json({
+    jsonrpc: '2.0',
+    method: 'connection_check',
+    result: {
+      status: "ready",
+      protocolVersion: "2024-11-05",
+      serverInfo: {
+        name: "example-server",
+        version: "1.0.0"
+      },
+      capabilities: {
+        tools: {}
+      },
+      userId: userId || 'not_provided',
+      timestamp: new Date().toISOString(),
+      responseTime: Date.now() - startTime,
+      serverUptime: process.uptime(),
+      // Indicate server is warm and ready
+      warm: true,
+      environment: process.env.NODE_ENV || 'production'
+    }
+  });
+});
+
 // JSON-RPC endpoint for MCP communication
 router.post("/mcp", async (req, res) => {
   try {
     const message: any = req.body;
     const userId = req.query.userId as string;
-    console.log("Received /mcp request with userId:", userId);
+    console.log("Received /mcp POST request with userId:", userId);
     console.log("Request body:", JSON.stringify(message, null, 2));
     console.log("Request headers:", req.headers);
+
+    // Validate userId
+    if (!userId) {
+      console.warn("Missing userId in query parameters");
+      return res.status(400).json({
+        jsonrpc: '2.0' as const,
+        error: {
+          code: -32602,
+          message: 'Missing required userId parameter'
+        },
+        id: message?.id || null
+      });
+    }
 
     if ('method' in message && 'id' in message) {
       const request = message;
@@ -45,11 +102,13 @@ router.post("/mcp", async (req, res) => {
 
         switch (request.method) {
           case 'initialize':
-            console.log("Initializing client connection");
+            console.log("Initializing client connection for user:", userId);
             result = {
               protocolVersion: "2024-11-05",
               capabilities: {
-                tools: {}
+                tools: {},
+                resources: {},
+                prompts: {}
               },
               serverInfo: {
                 name: "example-server",
@@ -60,9 +119,14 @@ router.post("/mcp", async (req, res) => {
 
           case 'tools/list':
             console.log("Handling tools/list for user:", userId);
-            const filteredTools = await getToolsForUser(userId, tools);
-            console.log("Filtered tools for user:", filteredTools);
-            result = { tools: filteredTools };
+            try {
+              const filteredTools = await getToolsForUser(userId, tools);
+              console.log("Filtered tools for user:", filteredTools);
+              result = { tools: filteredTools };
+            } catch (error) {
+              console.error("Error getting tools for user:", error);
+              throw new Error(`Failed to get tools for user: ${(error as Error).message}`);
+            }
             break;
 
           case 'tools/call':
@@ -77,11 +141,36 @@ router.post("/mcp", async (req, res) => {
             console.log("Tool name:", name);
             console.log("Tool arguments:", args);
 
+            if (!name) {
+              throw new Error('Missing tool name in tools/call');
+            }
+
             const argsWithUser = { ...args, userId };
             console.log("Arguments with userId injected:", argsWithUser);
 
-            result = await handleToolCall(name, argsWithUser);
-            console.log("Tool call result:", result);
+            try {
+              result = await handleToolCall(name, argsWithUser);
+              console.log("Tool call result:", result);
+            } catch (error) {
+              console.error("Error executing tool call:", error);
+              throw new Error(`Tool execution failed: ${(error as Error).message}`);
+            }
+            break;
+
+          case 'resources/list':
+            console.log("Handling resources/list for user:", userId);
+            // Return empty resources list for now
+            result = { 
+              resources: [] 
+            };
+            break;
+
+          case 'prompts/list':
+            console.log("Handling prompts/list for user:", userId);
+            // Return empty prompts list for now
+            result = { 
+              prompts: [] 
+            };
             break;
 
           default:
@@ -107,7 +196,20 @@ router.post("/mcp", async (req, res) => {
         });
       }
     } else if ('method' in message && !('id' in message)) {
+      // Handle JSON-RPC notifications (no response expected)
       console.log("Received JSON-RPC notification:", message.method);
+      
+      switch (message.method) {
+        case 'notifications/cancelled':
+          console.log("Request cancelled:", message.params);
+          break;
+        case 'notifications/progress':
+          console.log("Progress notification:", message.params);
+          break;
+        default:
+          console.log("Unknown notification method:", message.method);
+      }
+      
       res.status(204).send();
     } else {
       console.warn("Invalid JSON-RPC message format");
@@ -134,14 +236,39 @@ router.post("/mcp", async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health check endpoint with timing info
 router.get("/health", (req, res) => {
+  const startTime = Date.now();
   console.log("Health check requested");
-  res.json({
-    status: "ok",
-    tools: tools.length,
-    endpoints: ["/sse", "/mcp"]
-  });
+  
+  // Simulate small delay to test responsiveness
+  setTimeout(() => {
+    res.json({
+      status: "ok",
+      tools: tools.length,
+      endpoints: ["/sse", "/mcp"],
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      responseTime: Date.now() - startTime,
+      environment: process.env.NODE_ENV || 'development',
+      memory: process.memoryUsage(),
+      // Add server readiness indicators
+      ready: true,
+      lastActivity: new Date().toISOString()
+    });
+  }, 10); // Small delay to test timing
+});
+
+// Catch-all for unsupported methods on /mcp
+router.all("/mcp", (req, res) => {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    console.log(`Unsupported method ${req.method} on /mcp endpoint`);
+    res.status(405).json({
+      error: "Method Not Allowed",
+      allowed: ["GET", "POST"],
+      received: req.method
+    });
+  }
 });
 
 export { router as routes };
