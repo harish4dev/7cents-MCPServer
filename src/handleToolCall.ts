@@ -1,5 +1,5 @@
-import { toolHandlers } from "./toolRegistry";
-import { prisma } from "./utils";
+import { toolHandlers } from "./toolRegistry.js";
+import { prisma } from "./utils.js";
 
 export async function handleToolCall(name: string, args: any) {
   if (!args) {

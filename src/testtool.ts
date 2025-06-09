@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { prisma } from "./utils";
+import { prisma } from "./utils.js";
 import { google } from "googleapis";
 
 // =====================

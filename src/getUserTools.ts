@@ -1,6 +1,6 @@
 // utils/getUserTools.ts or inside the same file above switch block
 
-import { prisma } from "./utils";
+import { prisma } from "./utils.js";
 
 interface Tool {
   name: string;

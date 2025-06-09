@@ -3,7 +3,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { server } from "./mcpServer.js";
 // import { tools, handleToolCall } from "./testtool";
 import { handleToolCall } from "./handleToolCall.js";
-import {tools} from './toolRegistry'
+import {tools} from './toolRegistry.js'
 import { prisma } from "./utils.js";
 import { getToolsForUser } from "./getUserTools.js";
 const router = Router();
