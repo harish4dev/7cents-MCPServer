@@ -1,5 +1,5 @@
 import express from "express";
-import routes from "./routes.js";
+import {routes} from "./routes.js";
 // import { tools } from "./testtool";
 import { loadAllTools, tools } from "./toolRegistry.js";
 
