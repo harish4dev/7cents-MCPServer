@@ -1,7 +1,7 @@
 import express from "express";
-import routes from "./routes";
+import routes from "./routes.js";
 // import { tools } from "./testtool";
-import { loadAllTools, tools } from "./toolRegistry";
+import { loadAllTools, tools } from "./toolRegistry.js";
 
 (async () => {
   await loadAllTools();

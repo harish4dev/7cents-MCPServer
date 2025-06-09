@@ -1,6 +1,6 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { google } from "googleapis";
-import { prisma } from "../utils"; // Adjust this path if 'prisma' is located elsewhere
+import { prisma } from "../utils.js"; // Adjust this path if 'prisma' is located elsewhere
 import dotenv from "dotenv"; // Import dotenv to load environment variables
 
 dotenv.config(); // Load environment variables from .env file
