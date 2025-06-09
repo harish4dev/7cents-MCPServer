@@ -4,10 +4,11 @@
     "description": "Example MCP Server with Express and SSE",
     "main": "dist/index.js",
     "scripts": {
-        "dev": "tsx watch src/server.ts",
-        "build": "tsc",
-        "start": "node dist/server.js"
-    },
+    "dev": "tsx watch src/server.ts",
+    "build": "npx prisma generate && tsc",
+    "start": "node dist/server.js",
+    "postinstall": "npx prisma generate"
+  },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.12.1",
         "@prisma/client": "^6.9.0",
