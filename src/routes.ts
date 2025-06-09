@@ -43,10 +43,12 @@ router.post("/messages", (req, res) => {
 
 // Handle GET requests to /mcp endpoint (for health checks/connection validation)
 router.get("/mcp", async (req, res) => {
+  console.log("get by user",req.query.userId)
+  console.log(req.body,req.header)
   try {
     const message: any = req.body;
     const userId = req.query.userId as string;
-    console.log("Received /mcp POST request with userId:", userId);
+    console.log("Received /mcp get request with userId:", userId);
     console.log("Request body:", JSON.stringify(message, null, 2));
     console.log("Request headers:", req.headers);
 
@@ -207,6 +209,8 @@ router.get("/mcp", async (req, res) => {
 
 // JSON-RPC endpoint for MCP communication
 router.post("/mcp", async (req, res) => {
+  console.log("post by user",req.query.userId)
+  console.log(req.body,req.header)
   try {
     const message: any = req.body;
     const userId = req.query.userId as string;
