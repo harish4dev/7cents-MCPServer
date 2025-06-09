@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { server } from "./mcpServer.js";
-import { tools, handleToolCall } from "./tools";
-
+// import { tools, handleToolCall } from "./testtool";
+import { handleToolCall } from "./handleToolCall.js";
+import {tools} from './toolRegistry'
+import { prisma } from "./utils.js";
+import { getToolsForUser } from "./getUserTools.js";
 const router = Router();
 let transport: SSEServerTransport | null = null;
 
@@ -25,6 +28,7 @@ router.post("/messages", (req, res) => {
 router.post("/mcp", async (req, res) => {
   try {
     const message: any = req.body;
+    console.log("headder sent ny the client",req.headers)
     const userId = req.query.userId as string; // Extract userId from query string
     console.log("the user id is there:", userId);
     
@@ -62,9 +66,12 @@ router.post("/mcp", async (req, res) => {
             };
             break;
             
-          case 'tools/list':
-            result = { tools };
-            break;
+            case 'tools/list':
+              const filteredTools = await getToolsForUser(userId, tools);
+              result = { tools: filteredTools };
+              
+             break
+              
             
           case 'tools/call':
             if (!request.params) {
