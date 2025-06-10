@@ -22,7 +22,6 @@ export const getToolsForUser = async (
   const userToolEntries = await prisma.userTool.findMany({
     where: {
       userId,
-      authorized: true, // optional
     },
     select: {
       toolId: true,
